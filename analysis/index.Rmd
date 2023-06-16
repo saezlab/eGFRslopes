@@ -29,4 +29,4 @@ Coming soon:
 - Model comparison and diagnostics of time-to-event submodel
 
 
-Questions? Something broken? [Submit a GitHub issue](www.github.com/saezlab/eGFRslopes).
+Questions? Something broken? [Submit a GitHub issue.](https://github.com/saezlab/eGFRslopes/issues)

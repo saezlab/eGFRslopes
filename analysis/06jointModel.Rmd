@@ -1,5 +1,5 @@
 ---
-title: "06. Joint modelling of eGFR slopes"
+title: "4. Joint modelling of eGFR slopes"
 author: "Elif Doğan Dar"
 date: "2023-06-16"
 output: workflowr::wflow_html
@@ -11,7 +11,7 @@ editor_options:
 
 Now we finally come to modelling the eGFR slopes. 
 
-A useful reference is (A Tutorial for Joint Modeling of Longitudinal and Time-to-Event Data in R)[https://doi.org/10.5964/qcmb.2979].
+A useful reference is [A Tutorial for Joint Modeling of Longitudinal and Time-to-Event Data in R](https://doi.org/10.5964/qcmb.2979).
  
 
 Load necessary libraries:
