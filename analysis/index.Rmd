@@ -8,4 +8,25 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome to my research website.
+Welcome to our R tutorial for inferring eGFR slopes from serum creatinine data using a joint modelling approach.
+
+0. [Generate synthetic dataset](00syntheticData.html)
+
+1. [AKI outlier detection](01flagAKI.html)
+
+2. [Calculate eGFR from SCr](02calculateEGFR.html)
+
+3. [Prepare data for joint modelling](03prepareData.html)
+
+4. [Joint modelling of eGFR slopes](06jointModel.html)
+
+5. [Extract and plot eGFR slopes](07extractSlopes.html)
+
+Coming soon:
+
+- Model comparison and diagnostics of longitudinal submodel
+
+- Model comparison and diagnostics of time-to-event submodel
+
+
+Questions? Something broken? [Submit a GitHub issue](www.github.com/saezlab/eGFRslopes).

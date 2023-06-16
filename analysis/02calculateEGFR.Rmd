@@ -1,0 +1,87 @@
+---
+title: "02. Calculate eGFR"
+author: "Charlotte Boys"
+date: "2023-06-13"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Introduction
+
+In this part of the tutorial, we calculate eGFR from serum creatinine measurements (umol/L) according to the CKD-EPI 2021 formula.
+
+Load necessary libraries:
+```{r}
+library(tidyverse)
+```
+
+Load simulated longitudinal data and patient metadata:
+
+```{r}
+patient_metadata <- read.csv("data/simulated_metadata.csv")
+longitudinal_data <- read.csv("data/simulated_longitudinal_data.csv")
+```
+
+Load support functions:
+
+```{r}
+source("code/calculateEGFR.R")
+```
+
+## Calculate eGFR
+
+To calculate eGFR from creatinine serum measurements, we need information about:
+
+- age at the time the measurement was taken
+- sex
+
+We take this from the patient metadata.
+
+There are parameters within the equation - kappa, alpha, and a multiplication factor we'll call f - which are adjusted for sex. We add these to the dataframe, and use the CKD-EPI 2021 formula to calculate eGFR.
+```{r}
+serum_creatinine_egfr <- longitudinal_data %>% 
+  dplyr::filter(type == "SCr") %>%
+  dplyr::inner_join(patient_metadata,
+                    by = "patient_id") %>%
+  dplyr::mutate(kappa = ifelse(sex == "F", 61.894, 79.578),
+                f = ifelse(sex == "F", 1.012, 1),
+                alpha = ifelse(sex == "F", -0.241, -0.302),
+                age = age_at_biopsy + years_from_biopsy) %>%
+  dplyr::rowwise() %>%
+  dplyr::mutate(eGFR = CKD_EPI_2021(measurement, kappa, alpha, f, age)) %>%
+  dplyr::ungroup()
+```
+
+Add eGFR measurements to the longitudinal data:
+
+```{r}
+longitudinal_egfr <- serum_creatinine_egfr %>%
+  dplyr::transmute(patient_id = patient_id, 
+                   type = "eGFR",
+                   measurement = eGFR, 
+                   units = "ml/min/1.73m²",
+                   years_from_biopsy = years_from_biopsy,
+                   days_from_biopsy = days_from_biopsy)
+
+longitudinal_data <- rbind(longitudinal_data, longitudinal_egfr)
+```
+
+Plot the eGFR observations for the first twenty patients in our synthetic cohort:
+
+```{r}
+longitudinal_egfr %>%
+  dplyr::filter(patient_id %in% 1:20) %>%
+  ggplot() +
+    geom_point(aes(x = years_from_biopsy, y = measurement), size = .5) +
+  facet_wrap(~patient_id)
+```
+
+## Save data
+
+Save the longitudinal data, now containing both serum creatinine and eGFR measurements, for future use:
+
+```{r}
+write.csv(longitudinal_data, "output/longitudinal_data.csv", row.names = FALSE)
+```
+

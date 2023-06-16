@@ -1,0 +1,104 @@
+---
+title: "1. Flag AKI episodes"
+author: "Charlotte Boys"
+date: "2023-06-13"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Introduction
+
+We flag AKI episodes from serum creatinine measurements.
+
+Load necessary libraries:
+```{r}
+library(tidyverse)
+library(zoo)
+```
+
+Load support functions:
+```{r}
+source("code/flagAKI.R")
+```
+
+Read in the synthetic longitudinal data:
+```{r}
+longitudinal_data <- read.csv("data/simulated_longitudinal_data.csv")
+```
+
+## Test AKI critera 
+
+For each SCr measurement, we test if one of the following criteria are met [@hapca2021relationship]:
+
+1. SCr $\geq$ 1.5$ times higher than median of all creatinine measures in the 8-365 days before index (day the measurement was taken)
+
+2. SCr $\geq$ 1.5 times higher than the lowest creatinine in the 7 days before or post-index
+
+3. SCr $>$ 26 umol/L higher than the lowest creatinine in the 2 days before or post-index
+
+4. SCr $\geq$ 1.5 times higher than median of all creatinine measures in the 8-365 days post-index
+
+The functions in which these tests are implemented can be found in the script `code/flagAKI.R`.
+
+```{r}
+scr_values <- testAKIcriteria(longitudinal_data)
+```
+
+```{r}
+knitr::kable(head(scr_values))
+```
+
+## Group observations into episodes of care
+
+We identify "episodes of care", that is, periods where multiple observations are made in a short space of time. This will allow us to later identify potential hospital admissions or in-patient events.
+
+We define an "episode of care" by linking together any observation made within seven days of another into one group of observations. To give a concrete example: observations made on days 1, 8, and 14 post-biopsy belong to one "episode of care" because they all occur within seven days of one another. If the next observation were made on day 22 (eight days after day 14), then it would belong in a separate episode of care. The code below assigns a unique numeric `group_id` to each observation by which its episode of care can be identified.
+
+```{r}
+scr_episodes <- scr_values %>%
+  dplyr::group_by(patient_id) %>%
+  dplyr::mutate(lag_day = abs(days_from_biopsy - lag(days_from_biopsy)) <= 7,
+         lead_day = abs(days_from_biopsy - lead(days_from_biopsy)) <= 7) %>%
+  dplyr::mutate_at(vars(lag_day, lead_day), ~ ifelse(., ., NA))%>%
+  dplyr::mutate(episode_of_care = ifelse(is.na(lead_day), NA, data.table::rleid(lead_day))) %>%
+  dplyr::mutate(episode_of_care = ifelse(!is.na(lag_day), zoo::na.locf(episode_of_care, na.rm = FALSE), episode_of_care)) %>%
+  dplyr::mutate(group_id = coalesce(
+      case_when(is.na(episode_of_care) ~ nrow(.) + row_number()), # number of rows in df plus row number ensures unique ID
+      episode_of_care)) %>%
+  dplyr::ungroup()
+```
+
+## Flag episodes of care as potential AKI and in-patient events
+
+Now we have our observations grouped into episodes of care, we use the above AKI criteria to flag for potential AKI events. Specifically, an episode of care is given the flag `AKI` if and only if one or more observations belonging to the episode meets one or more of the AKI criteria. We also take note of the number of serum creatinine observations within each episode, which we will use to flag for potential in-patient events (hospital admissions). Specifically, if one episode of care contains five or more observations we give it the `in-patient` flag.
+
+```{r}
+summarised_episodes <- scr_episodes %>%
+  dplyr::group_by(patient_id, group_id) %>%
+  dplyr::summarise(
+    AKI = any(AKIcrit1, AKIcrit2, AKIcrit3, AKIcrit4, na.rm = TRUE), 
+    n_obs = n(),
+    start = min(days_from_biopsy),
+    end = max(days_from_biopsy))
+
+flagged_episodes <- summarised_episodes %>%
+  dplyr::filter(AKI | n_obs >= 5) %>%
+  dplyr::mutate(in_patient = ifelse(n_obs >= 5, TRUE, FALSE)) %>%
+  dplyr::mutate(flag = ifelse(AKI & in_patient, "AKI and in-patient",
+                                  ifelse(AKI, "AKI", "in-patient"))) %>%
+  dplyr::mutate(flag = as.factor(flag)) %>%
+  dplyr::select(start, end, patient_id, n_obs, flag)
+```
+
+```{r}
+knitr::kable(head(flagged_episodes))
+```
+
+## Save data
+
+Save the flagged episodes, so that if desired we can remove the outlying observations from the data when calculating the long-term eGFR slopes:
+
+```{r}
+write.csv(flagged_episodes, "output/flagged_episodes.csv", row.names = FALSE)
+```

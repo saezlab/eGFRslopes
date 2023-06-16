@@ -1,0 +1,181 @@
+---
+title: "03. Prepare data for joint modelling"
+author: "Charlotte Boys, Elif Doğan Dar"
+date: "2023-06-13"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Introduction
+
+Next, we prepare the data so it is ready for joint modelling. Since we are interested in the chronic eGFR trajectory, we filter out the episodes flagged as AKI and in-patient events.
+
+Load necessary libraries:
+
+```{r}
+library(tidyverse)
+```
+
+Load data:
+
+```{r}
+patient_metadata <- read.csv("data/simulated_metadata.csv")
+flagged_episodes <- read.csv("output/flagged_episodes.csv")
+longitudinal_data <- read.csv("output/longitudinal_data.csv")
+```
+
+## Filter out measurements during AKI episodes
+
+First, let's remind ourselves of how the flagged episodes data looked:
+```{r}
+knitr::kable(head(flagged_episodes))
+```
+
+There were three types of flags:
+```{r}
+unique(flagged_episodes$flag)
+```
+
+We define a function to filter out the flagged episodes:
+```{r}
+filter_flagged_episodes <- function(longitudinal_data,
+                                    flagged_episodes,
+                                    flags = c("AKI and in-patient", "AKI")){
+  to_remove <- flagged_episodes %>%
+  dplyr::filter(flag %in% flags)
+  
+  patients_without_flags <- longitudinal_data %>%
+  dplyr::filter(!(patient_id %in% to_remove$patient_id)) %>%
+  dplyr::distinct()
+  
+  patients_with_flags <- longitudinal_data %>%
+  dplyr::filter(patient_id %in% to_remove$patient_id)
+  
+  check_observations <- dplyr::left_join(patients_with_flags,
+                          to_remove,
+                          by = "patient_id",
+                          multiple = "all",
+                          relationship = "many-to-many") %>%
+  dplyr::mutate(flagged = ifelse(days_from_biopsy >= start & days_from_biopsy <= end, TRUE, FALSE))
+
+  patients_with_flags_keep <- check_observations %>%
+    dplyr::group_by(patient_id, days_from_biopsy) %>%
+    dplyr::filter(!any(flagged == TRUE)) %>%
+    dplyr::select(-c(start, end, n_obs, flag, flagged)) %>%
+    dplyr::distinct()
+  
+  patients_with_flags_remove <- check_observations %>%
+    dplyr::group_by(patient_id, days_from_biopsy) %>%
+    dplyr::filter(any(flagged == TRUE)) %>%
+    dplyr::select(-c(start, end, n_obs, flag, flagged)) %>%
+    dplyr::distinct()
+  
+  stopifnot("Sum of rows to keep and rows to remove does not equal original number of rows" = nrow(patients_with_flags_keep) + nrow(patients_with_flags_remove) == nrow(patients_with_flags))
+  
+  measurements_filtered <- rbind(patients_without_flags, patients_with_flags_keep)
+  return(measurements_filtered)
+}
+```
+
+We filter the eGFR measurements, removing those taken during episodes of care flagged as meeting both the AKI and in-patient criteria:
+```{r}
+eGFR_filtered <- filter_flagged_episodes(longitudinal_data,
+                                         flagged_episodes,
+                                         flags = c("AKI and in-patient")) %>%
+  dplyr::filter(type == "eGFR")
+```
+
+## Prepare eGFR data for joint modelling
+
+In our simulated longitudinal data, we only have one clinical endpoint event of interest: dialysis.
+We gather information about which patients reached the clinical endpoint, at which event time:
+
+```{r}
+endpoints <- c("Dialysis")
+
+event_time <- longitudinal_data %>% 
+  dplyr::filter(type %in% endpoints) %>%
+  dplyr::transmute(patient_id, event_time = days_from_biopsy)
+
+reached_endpoint <- event_time$patient_id
+```
+
+Add information about endpoints and final measurement time to the patient metadata:
+```{r}
+final_measurement <- longitudinal_data %>%
+  dplyr::group_by(patient_id) %>%
+  dplyr::slice_max(days_from_biopsy, n = 1, with_ties = F) %>% 
+  dplyr::transmute(patient_id, last_measurement = days_from_biopsy)
+
+patient_metadata <- patient_metadata %>% 
+  dplyr::full_join(final_measurement, 
+                   by = "patient_id" ,
+                   multiple = "all") %>%
+  dplyr::full_join(event_time, by = "patient_id", multiple = "all") %>%
+  dplyr::distinct() %>%
+  dplyr::group_by(patient_id) %>%
+  dplyr::slice_head(n = 1) # Keep only one entry per patient_id
+```
+
+We add the patient metadata to the filtered longitudinal eGFR data, and also rescale measurements from days to years.
+We add the columns `start`, `stop` and `endpoint` as they are needed for the joint modelling:
+
+```{r}
+eGFR_plus_metadata <- dplyr::full_join(eGFR_filtered, 
+                                 patient_metadata, 
+                                 by = c('patient_id')) %>%
+  dplyr::mutate(last_measurement_y = last_measurement/365.25,
+                event_time_y = event_time/365.25) %>%
+  dplyr::distinct() %>%
+  tidyr::drop_na(years_from_biopsy) %>%
+  dplyr::group_by(patient_id) %>%
+  dplyr::arrange(years_from_biopsy) %>%
+  dplyr::mutate(start = years_from_biopsy) %>%
+  dplyr::mutate(stop = dplyr::lead(start,
+                                   order_by = years_from_biopsy,
+                                   default = unique(last_measurement_y))) %>%
+  dplyr::mutate(event = ifelse(is.na(event_time_y),
+                               0,
+                               ifelse(abs(stop-event_time_y) < 1e-10,
+                                      1,
+                                      0))) %>% 
+  dplyr::mutate(endpoint = ifelse(patient_id %in% reached_endpoint,
+                                  1, 
+                                  0))
+```
+
+We have just a few more changes to make to be able to run the joint modelling.
+
+`Surv()` requires the start time to be different from the stop time of the interval. However, when an observation is
+the last available measurement for that patient, the start and the stop time are equal. As a work around, we omit the final observations from the model:
+
+```{r}
+to_omit <- eGFR_plus_metadata %>% dplyr::filter(stop <= start)
+eGFR_plus_metadata <- setdiff(eGFR_plus_metadata, to_omit)
+```
+
+JM does not accept start times of zero. We have to set them to a small positive number.
+Also, create a minimal dataframe of only the variables we will use in the modelling process, check that `patient_id` is numeric, and order the data according to `patient_id` and `start` time:
+
+```{r}
+eGFR_minimal <- eGFR_plus_metadata %>% 
+  dplyr::select(patient_id, last_measurement_y, endpoint, measurement, disease, age_at_biopsy, sex, start, stop, event) %>%
+  dplyr::mutate(start = ifelse(start < 1/365.25, 1e-5, start))
+
+stopifnot("`patient_id` is not numeric" = all(is.numeric(eGFR_minimal$patient_id)))
+
+# Order the longitudinal data according to the patient_id, and order the time points within each subject with respect to time
+eGFR_minimal <- eGFR_minimal[order(eGFR_minimal$patient_id, eGFR_minimal$start),]
+```
+
+```{r}
+knitr::kable(head(eGFR_minimal))
+```
+
+## Save data
+
+```{r}
+write.csv(eGFR_minimal, "output/eGFR_minimal.csv", row.names = FALSE)
+```
+
