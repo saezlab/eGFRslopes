@@ -13,7 +13,7 @@
 
 <meta name="date" content="2023-06-16" />
 
-<title>06. Joint modelling of eGFR slopes</title>
+<title>4. Joint modelling of eGFR slopes</title>
 
 <script src="site_libs/header-attrs-2.22/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -37,6 +37,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
 
 <link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
 <!-- Add a small amount of space between sections. -->
@@ -341,7 +343,13 @@ div.tocify {
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/saezlab/eGFRslopes">
+    <span class="fab fa-github"></span>
+     
+    Source code
+  </a>
+</li>
       </ul>
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -351,7 +359,7 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">06. Joint modelling of eGFR slopes</h1>
+<h1 class="title toc-ignore">4. Joint modelling of eGFR slopes</h1>
 <h4 class="author">Elif Doğan Dar</h4>
 <h4 class="date">2023-06-16</h4>
 
@@ -513,15 +521,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsaezlabeGFRslopestree7de25c87981012271dc8006d1993958ec981d26ctargetblank7de25c8a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsaezlabeGFRslopestree93d7c81fdb0c5f4fa4059ced4b57ab82dc979cbbtargetblank93d7c81a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/saezlab/eGFRslopes/tree/7de25c87981012271dc8006d1993958ec981d26c" target="_blank">7de25c8</a>
+<a href="https://github.com/saezlab/eGFRslopes/tree/93d7c81fdb0c5f4fa4059ced4b57ab82dc979cbb" target="_blank">93d7c81</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsaezlabeGFRslopestree7de25c87981012271dc8006d1993958ec981d26ctargetblank7de25c8a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsaezlabeGFRslopestree93d7c81fdb0c5f4fa4059ced4b57ab82dc979cbbtargetblank93d7c81a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -531,7 +539,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/saezlab/eGFRslopes/tree/7de25c87981012271dc8006d1993958ec981d26c" target="_blank">7de25c8</a>.
+<a href="https://github.com/saezlab/eGFRslopes/tree/93d7c81fdb0c5f4fa4059ced4b57ab82dc979cbb" target="_blank">93d7c81</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -618,6 +626,40 @@ Message
 Rmd
 </td>
 <td>
+<a href="https://github.com/saezlab/eGFRslopes/blob/93d7c81fdb0c5f4fa4059ced4b57ab82dc979cbb/analysis/06jointModel.Rmd" target="_blank">93d7c81</a>
+</td>
+<td>
+Charlotte Boys
+</td>
+<td>
+2023-06-16
+</td>
+<td>
+Update links
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/saezlab/eGFRslopes/391f074147e975e56e3ad07abed3a5583198b21e/docs/06jointModel.html" target="_blank">391f074</a>
+</td>
+<td>
+Charlotte Boys
+</td>
+<td>
+2023-06-16
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
 <a href="https://github.com/saezlab/eGFRslopes/blob/7de25c87981012271dc8006d1993958ec981d26c/analysis/06jointModel.Rmd" target="_blank">7de25c8</a>
 </td>
 <td>
@@ -640,9 +682,9 @@ Publish main parts of framework
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>Now we finally come to modelling the eGFR slopes.</p>
-<p>A useful reference is (A Tutorial for Joint Modeling of Longitudinal
-and Time-to-Event Data in R)[<a href="https://doi.org/10.5964/qcmb.2979"
-class="uri">https://doi.org/10.5964/qcmb.2979</a>].</p>
+<p>A useful reference is <a href="https://doi.org/10.5964/qcmb.2979">A
+Tutorial for Joint Modeling of Longitudinal and Time-to-Event Data in
+R</a>.</p>
 <p>Load necessary libraries:</p>
 <p>Load the data:</p>
 <pre class="r"><code>eGFR_minimal &lt;- read.csv(&quot;output/eGFR_minimal.csv&quot;)</code></pre>
@@ -825,7 +867,7 @@ chains: 3
 iterations per chain: 3500 
 burn-in per chain: 500 
 thinning: 1 
-time: 4 sec</code></pre>
+time: 5 sec</code></pre>
 <p>Use the <code>predict</code> function to generate the fitted slope
 from the joint model:</p>
 <pre class="r"><code>pred_long &lt;- predict(fitJMbayes1, eGFR_minimal, process = &#39;longitudinal&#39;,
@@ -835,6 +877,43 @@ from the joint model:</p>
 function:</p>
 <pre class="r"><code>plot(pred_long, subject = 15)</code></pre>
 <p><img src="figure/06jointModel.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-10-1">
+Past versions of unnamed-chunk-10-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-10-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/saezlab/eGFRslopes/blob/391f074147e975e56e3ad07abed3a5583198b21e/docs/figure/06jointModel.Rmd/unnamed-chunk-10-1.png" target="_blank">391f074</a>
+</td>
+<td>
+Charlotte Boys
+</td>
+<td>
+2023-06-16
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>Plot for the first twenty patients in our cohort:</p>
 <pre class="r"><code>pred_long %&gt;%
   dplyr::filter(patient_id %in% 1:20) %&gt;%
@@ -843,6 +922,43 @@ function:</p>
     geom_line(aes(x = start, y = pred_measurement), color=&quot;#00BFC4&quot;, linewidth =.5)+
   facet_wrap(~patient_id)</code></pre>
 <p><img src="figure/06jointModel.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-11-1">
+Past versions of unnamed-chunk-11-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-11-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/saezlab/eGFRslopes/blob/391f074147e975e56e3ad07abed3a5583198b21e/docs/figure/06jointModel.Rmd/unnamed-chunk-11-1.png" target="_blank">391f074</a>
+</td>
+<td>
+Charlotte Boys
+</td>
+<td>
+2023-06-16
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 </div>
 <div id="save-data" class="section level2">
