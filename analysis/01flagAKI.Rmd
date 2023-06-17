@@ -88,7 +88,7 @@ flagged_episodes <- summarised_episodes %>%
   dplyr::mutate(flag = ifelse(AKI & in_patient, "AKI and in-patient",
                                   ifelse(AKI, "AKI", "in-patient"))) %>%
   dplyr::mutate(flag = as.factor(flag)) %>%
-  dplyr::select(start, end, patient_id, n_obs, flag)
+  dplyr::select(start, end, patient_id, n_obs, flag, group_id)
 ```
 
 ```{r}

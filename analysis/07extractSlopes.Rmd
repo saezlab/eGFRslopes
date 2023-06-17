@@ -1,0 +1,91 @@
+---
+title: "5. Extract eGFR slopes"
+author: "Charlotte Boys"
+date: "2023-06-16"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Introduction
+
+Finally, we put together a report containing the eGFR measurements, flagged episodes and eGFR slopes for each patient.
+
+Load necessary libraries:
+```{r}
+library(tidyverse)
+```
+
+Load support functions:
+```{r}
+source("code/extractSlopes.R")
+```
+
+Load data:
+```{r}
+pred_long <- read.csv("output/pred_long.csv")
+longitudinal_data <- read.csv("output/longitudinal_data.csv")
+flagged_episodes <- read.csv("output/flagged_episodes.csv")
+```
+
+## Plot eGFR report by patient
+
+The support function `plot_by_patient()` allows us to generate a report plot showing the observed eGFR values, the fitted slope, and the flagged AKI episodes.
+
+Prepare the data:
+```{r}
+predicted_values <- pred_long %>%
+  dplyr::select(-c("age_at_biopsy", "last_measurement_y",
+                   "low_measurement", "upp_measurement", "endpoint")) %>%
+  dplyr::mutate(years_from_biopsy = start)
+
+eGFR_values <- longitudinal_data %>%
+  dplyr::filter(type == "eGFR") %>%
+  dplyr::left_join(predicted_values, by = c("patient_id", "measurement", "years_from_biopsy"))
+
+flagged_AKI <- flagged_episodes %>%
+  dplyr::filter(start >= 0, flag == "AKI and in-patient") %>%
+  dplyr::mutate(flag = "Meets AKI criteria\n& potential\nin-patient stay")
+```
+
+View plot for Patient 1:
+```{r}
+plot_by_patient(patient_str = 1,
+               longitudinal_data = eGFR_values,
+               flagged_episodes = flagged_AKI)
+```
+
+Create a PDF report with all eGFR slopes:
+```{r}
+all_patients <- unique(eGFR_values$patient_id)
+
+plots <- lapply(all_patients,
+                plot_by_patient,
+                longitudinal_data = eGFR_values,
+                flagged_episodes = flagged_AKI)
+
+pdf("./output/follow_up_report_by_patient.pdf", width = 6, height = 4)
+for (i in 1:length(plots)){
+  plot(plots[[i]])
+  }
+dev.off()
+```
+
+## Extract table of eGFR slopes
+
+Finally, the support function `extract_egfr_table()` allows us to extract a table of the eGFR slope (ml/min/1.73m²/year) and intercept (ml/min/1.73m²) according to the fitted joint mixed effects model.
+
+```{r}
+eGFR_slopes <- extract_egfr_table(patient_list = all_patients,
+                         pred_eGFR = eGFR_values)
+```
+
+```{r}
+knitr::kable(head(eGFR_slopes))
+```
+
+Save eGFR slopes:
+```{r}
+write.csv(eGFR_slopes, "output/fitted_eGFR_slopes.csv", row.names = FALSE)
+```
+
