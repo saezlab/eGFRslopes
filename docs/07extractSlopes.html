@@ -521,15 +521,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsaezlabeGFRslopestreefdd1a681378e3a0bd395d9ccb8374167b3455735targetblankfdd1a68a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsaezlabeGFRslopestreec96f1d1b36a1650bfd379968dfbec83bd5d0b011targetblankc96f1d1a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/saezlab/eGFRslopes/tree/fdd1a681378e3a0bd395d9ccb8374167b3455735" target="_blank">fdd1a68</a>
+<a href="https://github.com/saezlab/eGFRslopes/tree/c96f1d1b36a1650bfd379968dfbec83bd5d0b011" target="_blank">c96f1d1</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomsaezlabeGFRslopestreefdd1a681378e3a0bd395d9ccb8374167b3455735targetblankfdd1a68a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomsaezlabeGFRslopestreec96f1d1b36a1650bfd379968dfbec83bd5d0b011targetblankc96f1d1a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -539,7 +539,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/saezlab/eGFRslopes/tree/fdd1a681378e3a0bd395d9ccb8374167b3455735" target="_blank">fdd1a68</a>.
+<a href="https://github.com/saezlab/eGFRslopes/tree/c96f1d1b36a1650bfd379968dfbec83bd5d0b011" target="_blank">c96f1d1</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -557,7 +557,6 @@ Ignored files:
     Ignored:    .RData
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
-    Ignored:    analysis/figure/
 
 Untracked files:
     Untracked:  analysis/04longitudinal.Rmd
@@ -628,6 +627,40 @@ Message
 Rmd
 </td>
 <td>
+<a href="https://github.com/saezlab/eGFRslopes/blob/c96f1d1b36a1650bfd379968dfbec83bd5d0b011/analysis/07extractSlopes.Rmd" target="_blank">c96f1d1</a>
+</td>
+<td>
+Charlotte Boys
+</td>
+<td>
+2023-06-17
+</td>
+<td>
+Don’t display messages
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/saezlab/eGFRslopes/5078e868d4e2a7d6d29e6c37a2c6db9736e7b3a1/docs/07extractSlopes.html" target="_blank">5078e86</a>
+</td>
+<td>
+Charlotte Boys
+</td>
+<td>
+2023-06-17
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
 <a href="https://github.com/saezlab/eGFRslopes/blob/fdd1a681378e3a0bd395d9ccb8374167b3455735/analysis/07extractSlopes.Rmd" target="_blank">fdd1a68</a>
 </td>
 <td>
@@ -693,6 +726,43 @@ flagged_AKI &lt;- flagged_episodes %&gt;%
                longitudinal_data = eGFR_values,
                flagged_episodes = flagged_AKI)</code></pre>
 <p><img src="figure/07extractSlopes.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-5-1">
+Past versions of unnamed-chunk-5-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-5-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/saezlab/eGFRslopes/blob/5078e868d4e2a7d6d29e6c37a2c6db9736e7b3a1/docs/figure/07extractSlopes.Rmd/unnamed-chunk-5-1.png" target="_blank">5078e86</a>
+</td>
+<td>
+Charlotte Boys
+</td>
+<td>
+2023-06-17
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>Create a PDF report with all eGFR slopes:</p>
 <pre class="r"><code>all_patients &lt;- unique(eGFR_values$patient_id)
 
@@ -704,143 +774,8 @@ plots &lt;- lapply(all_patients,
 pdf(&quot;./output/follow_up_report_by_patient.pdf&quot;, width = 6, height = 4)
 for (i in 1:length(plots)){
   plot(plots[[i]])
-  }</code></pre>
-<pre><code>Warning: Removed 35 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 36 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).
-Removed 2 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 4 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 4 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>`geom_line()`: Each group consists of only one observation.
-ℹ Do you need to adjust the group aesthetic?</code></pre>
-<pre><code>Warning: Removed 37 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 42 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 12 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 14 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 13 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 15 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 4 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 5 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 10 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 16 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 14 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 5 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 16 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 17 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 6 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).
-Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 5 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 6 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>`geom_line()`: Each group consists of only one observation.
-ℹ Do you need to adjust the group aesthetic?</code></pre>
-<pre><code>Warning: Removed 8 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 7 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 8 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>`geom_line()`: Each group consists of only one observation.
-ℹ Do you need to adjust the group aesthetic?</code></pre>
-<pre><code>Warning: Removed 14 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 16 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 11 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 12 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 13 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 13 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 13 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 13 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 21 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 23 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 6 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 6 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 6 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 10 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 10 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 6 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 6 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).
-Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 7 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 7 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 5 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 5 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 3 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 3 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 5 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 5 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 9 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 10 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 3 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 3 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 45 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 47 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 4 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 4 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 11 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 12 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 24 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 24 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 42 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 42 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>`geom_line()`: Each group consists of only one observation.
-ℹ Do you need to adjust the group aesthetic?</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 6 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 13 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 24 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 12 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 8 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 61 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 86 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 10 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 11 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).
-Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 9 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 111 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 135 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_rect()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_label_repel()`).</code></pre>
-<pre><code>Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 7 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 23 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 28 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 9 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 9 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 5 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 5 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 8 rows containing missing values (`geom_point()`).</code></pre>
-<pre><code>Warning: Removed 8 rows containing missing values (`geom_line()`).</code></pre>
-<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
-<pre class="r"><code>dev.off()</code></pre>
+  }
+dev.off()</code></pre>
 <pre><code>quartz_off_screen 
                 2 </code></pre>
 </div>
