@@ -49,14 +49,14 @@ flagged_AKI <- flagged_episodes %>%
 ```
 
 View plot for Patient 1:
-```{r}
+```{r, warning = FALSE, message = FALSE}
 plot_by_patient(patient_str = 1,
                longitudinal_data = eGFR_values,
                flagged_episodes = flagged_AKI)
 ```
 
 Create a PDF report with all eGFR slopes:
-```{r}
+```{r, warning = FALSE, message = FALSE}
 all_patients <- unique(eGFR_values$patient_id)
 
 plots <- lapply(all_patients,
