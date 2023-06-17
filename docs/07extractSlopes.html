@@ -11,9 +11,9 @@
 
 <meta name="author" content="Charlotte Boys" />
 
-<meta name="date" content="2023-06-13" />
+<meta name="date" content="2023-06-16" />
 
-<title>1. Flag AKI episodes</title>
+<title>5. Extract eGFR slopes</title>
 
 <script src="site_libs/header-attrs-2.22/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -359,9 +359,9 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">1. Flag AKI episodes</h1>
+<h1 class="title toc-ignore">5. Extract eGFR slopes</h1>
 <h4 class="author">Charlotte Boys</h4>
-<h4 class="date">2023-06-13</h4>
+<h4 class="date">2023-06-16</h4>
 
 </div>
 
@@ -557,6 +557,7 @@ Ignored files:
     Ignored:    .RData
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
+    Ignored:    analysis/figure/
 
 Untracked files:
     Untracked:  analysis/04longitudinal.Rmd
@@ -594,11 +595,11 @@ have uncommitted changes.
 
 <p>
 These are the previous versions of the repository in which changes were
-made to the R Markdown (<code>analysis/01flagAKI.Rmd</code>) and HTML
-(<code>docs/01flagAKI.html</code>) files. If you’ve configured a remote
-Git repository (see <code>?wflow_git_remote</code>), click on the
-hyperlinks in the table below to view the files as they were in that
-past version.
+made to the R Markdown (<code>analysis/07extractSlopes.Rmd</code>) and
+HTML (<code>docs/07extractSlopes.html</code>) files. If you’ve
+configured a remote Git repository (see <code>?wflow_git_remote</code>),
+click on the hyperlinks in the table below to view the files as they
+were in that past version.
 </p>
 <div class="table-responsive">
 <table class="table table-condensed table-hover">
@@ -627,7 +628,7 @@ Message
 Rmd
 </td>
 <td>
-<a href="https://github.com/saezlab/eGFRslopes/blob/fdd1a681378e3a0bd395d9ccb8374167b3455735/analysis/01flagAKI.Rmd" target="_blank">fdd1a68</a>
+<a href="https://github.com/saezlab/eGFRslopes/blob/fdd1a681378e3a0bd395d9ccb8374167b3455735/analysis/07extractSlopes.Rmd" target="_blank">fdd1a68</a>
 </td>
 <td>
 Charlotte Boys
@@ -639,40 +640,6 @@ Charlotte Boys
 Add report and eGFR slope table
 </td>
 </tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/saezlab/eGFRslopes/391f074147e975e56e3ad07abed3a5583198b21e/docs/01flagAKI.html" target="_blank">391f074</a>
-</td>
-<td>
-Charlotte Boys
-</td>
-<td>
-2023-06-16
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/saezlab/eGFRslopes/blob/7de25c87981012271dc8006d1993958ec981d26c/analysis/01flagAKI.Rmd" target="_blank">7de25c8</a>
-</td>
-<td>
-Charlotte Boys
-</td>
-<td>
-2023-06-16
-</td>
-<td>
-Publish main parts of framework
-</td>
-</tr>
 </tbody>
 </table>
 </div>
@@ -682,7 +649,8 @@ Publish main parts of framework
 </div>
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>We flag AKI episodes from serum creatinine measurements.</p>
+<p>Finally, we put together a report containing the eGFR measurements,
+flagged episodes and eGFR slopes for each patient.</p>
 <p>Load necessary libraries:</p>
 <pre class="r"><code>library(tidyverse)</code></pre>
 <pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
@@ -695,271 +663,239 @@ Publish main parts of framework
 ✖ dplyr::filter() masks stats::filter()
 ✖ dplyr::lag()    masks stats::lag()
 ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
-<pre class="r"><code>library(zoo)</code></pre>
-<pre><code>
-Attaching package: &#39;zoo&#39;
-
-The following objects are masked from &#39;package:base&#39;:
-
-    as.Date, as.Date.numeric</code></pre>
 <p>Load support functions:</p>
-<pre class="r"><code>source(&quot;code/flagAKI.R&quot;)</code></pre>
-<p>Read in the synthetic longitudinal data:</p>
-<pre class="r"><code>longitudinal_data &lt;- read.csv(&quot;data/simulated_longitudinal_data.csv&quot;)</code></pre>
+<pre class="r"><code>source(&quot;code/extractSlopes.R&quot;)</code></pre>
+<p>Load data:</p>
+<pre class="r"><code>pred_long &lt;- read.csv(&quot;output/pred_long.csv&quot;)
+longitudinal_data &lt;- read.csv(&quot;output/longitudinal_data.csv&quot;)
+flagged_episodes &lt;- read.csv(&quot;output/flagged_episodes.csv&quot;)</code></pre>
 </div>
-<div id="test-aki-critera" class="section level2">
-<h2>Test AKI critera</h2>
-<p>For each SCr measurement, we test if one of the following criteria
-are met <span class="citation">[@hapca2021relationship]</span>:</p>
-<ol style="list-style-type: decimal">
-<li><p>SCr <span class="math inline">\(\geq\)</span> 1.5$ times higher
-than median of all creatinine measures in the 8-365 days before index
-(day the measurement was taken)</p></li>
-<li><p>SCr <span class="math inline">\(\geq\)</span> 1.5 times higher
-than the lowest creatinine in the 7 days before or post-index</p></li>
-<li><p>SCr <span class="math inline">\(&gt;\)</span> 26 umol/L higher
-than the lowest creatinine in the 2 days before or post-index</p></li>
-<li><p>SCr <span class="math inline">\(\geq\)</span> 1.5 times higher
-than median of all creatinine measures in the 8-365 days
-post-index</p></li>
-</ol>
-<p>The functions in which these tests are implemented can be found in
-the script <code>code/flagAKI.R</code>.</p>
-<pre class="r"><code>scr_values &lt;- testAKIcriteria(longitudinal_data)</code></pre>
-<pre><code>Testing criterion 1...</code></pre>
-<pre><code>Testing criterion 2...</code></pre>
-<pre><code>Testing criterion 3...</code></pre>
-<pre><code>Testing criterion 4...</code></pre>
-<pre><code>Done!</code></pre>
-<pre class="r"><code>knitr::kable(head(scr_values))</code></pre>
-<table style="width:100%;">
-<colgroup>
-<col width="10%" />
-<col width="16%" />
-<col width="11%" />
-<col width="4%" />
-<col width="6%" />
-<col width="16%" />
-<col width="8%" />
-<col width="8%" />
-<col width="8%" />
-<col width="8%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="right">patient_id</th>
-<th align="right">years_from_biopsy</th>
-<th align="right">measurement</th>
-<th align="left">type</th>
-<th align="left">units</th>
-<th align="right">days_from_biopsy</th>
-<th align="left">AKIcrit1</th>
-<th align="left">AKIcrit2</th>
-<th align="left">AKIcrit3</th>
-<th align="left">AKIcrit4</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">1</td>
-<td align="right">0.0054757</td>
-<td align="right">107.02514</td>
-<td align="left">SCr</td>
-<td align="left">umol/L</td>
-<td align="right">2</td>
-<td align="left">NA</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="right">0.0191650</td>
-<td align="right">107.14072</td>
-<td align="left">SCr</td>
-<td align="left">umol/L</td>
-<td align="right">7</td>
-<td align="left">NA</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="right">0.0273785</td>
-<td align="right">101.41421</td>
-<td align="left">SCr</td>
-<td align="left">umol/L</td>
-<td align="right">10</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="right">0.0301164</td>
-<td align="right">106.18664</td>
-<td align="left">SCr</td>
-<td align="left">umol/L</td>
-<td align="right">11</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="right">0.7091034</td>
-<td align="right">95.95474</td>
-<td align="left">SCr</td>
-<td align="left">umol/L</td>
-<td align="right">259</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">NA</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="right">0.9637235</td>
-<td align="right">95.74575</td>
-<td align="left">SCr</td>
-<td align="left">umol/L</td>
-<td align="right">352</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">NA</td>
-</tr>
-</tbody>
-</table>
+<div id="plot-egfr-report-by-patient" class="section level2">
+<h2>Plot eGFR report by patient</h2>
+<p>The support function <code>plot_by_patient()</code> allows us to
+generate a report plot showing the observed eGFR values, the fitted
+slope, and the flagged AKI episodes.</p>
+<p>Prepare the data:</p>
+<pre class="r"><code>predicted_values &lt;- pred_long %&gt;%
+  dplyr::select(-c(&quot;age_at_biopsy&quot;, &quot;last_measurement_y&quot;,
+                   &quot;low_measurement&quot;, &quot;upp_measurement&quot;, &quot;endpoint&quot;)) %&gt;%
+  dplyr::mutate(years_from_biopsy = start)
+
+eGFR_values &lt;- longitudinal_data %&gt;%
+  dplyr::filter(type == &quot;eGFR&quot;) %&gt;%
+  dplyr::left_join(predicted_values, by = c(&quot;patient_id&quot;, &quot;measurement&quot;, &quot;years_from_biopsy&quot;))
+
+flagged_AKI &lt;- flagged_episodes %&gt;%
+  dplyr::filter(start &gt;= 0, flag == &quot;AKI and in-patient&quot;) %&gt;%
+  dplyr::mutate(flag = &quot;Meets AKI criteria\n&amp; potential\nin-patient stay&quot;)</code></pre>
+<p>View plot for Patient 1:</p>
+<pre class="r"><code>plot_by_patient(patient_str = 1,
+               longitudinal_data = eGFR_values,
+               flagged_episodes = flagged_AKI)</code></pre>
+<p><img src="figure/07extractSlopes.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Create a PDF report with all eGFR slopes:</p>
+<pre class="r"><code>all_patients &lt;- unique(eGFR_values$patient_id)
+
+plots &lt;- lapply(all_patients,
+                plot_by_patient,
+                longitudinal_data = eGFR_values,
+                flagged_episodes = flagged_AKI)
+
+pdf(&quot;./output/follow_up_report_by_patient.pdf&quot;, width = 6, height = 4)
+for (i in 1:length(plots)){
+  plot(plots[[i]])
+  }</code></pre>
+<pre><code>Warning: Removed 35 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 36 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).
+Removed 2 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 4 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 4 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>`geom_line()`: Each group consists of only one observation.
+ℹ Do you need to adjust the group aesthetic?</code></pre>
+<pre><code>Warning: Removed 37 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 42 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 12 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 14 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 13 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 15 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 4 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 5 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 10 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 16 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 14 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 5 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 16 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 17 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 6 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).
+Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 5 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 6 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>`geom_line()`: Each group consists of only one observation.
+ℹ Do you need to adjust the group aesthetic?</code></pre>
+<pre><code>Warning: Removed 8 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 7 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 8 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>`geom_line()`: Each group consists of only one observation.
+ℹ Do you need to adjust the group aesthetic?</code></pre>
+<pre><code>Warning: Removed 14 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 16 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 11 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 12 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 13 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 13 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 13 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 13 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 21 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 23 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 6 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 6 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 6 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 10 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 10 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 6 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 6 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).
+Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 7 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 7 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 5 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 5 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 3 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 3 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 5 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 5 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 9 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 10 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 3 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 3 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 45 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 47 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 4 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 4 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 11 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 12 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 24 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 24 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 42 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 42 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>`geom_line()`: Each group consists of only one observation.
+ℹ Do you need to adjust the group aesthetic?</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 6 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 13 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 24 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 12 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 8 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 61 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 86 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 10 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 11 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).
+Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 9 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 111 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 135 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_rect()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_label_repel()`).</code></pre>
+<pre><code>Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 7 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 23 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 28 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 9 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 9 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 5 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 5 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 1 row containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 8 rows containing missing values (`geom_point()`).</code></pre>
+<pre><code>Warning: Removed 8 rows containing missing values (`geom_line()`).</code></pre>
+<pre><code>Warning: Removed 2 rows containing missing values (`geom_line()`).</code></pre>
+<pre class="r"><code>dev.off()</code></pre>
+<pre><code>quartz_off_screen 
+                2 </code></pre>
 </div>
-<div id="group-observations-into-episodes-of-care"
-class="section level2">
-<h2>Group observations into episodes of care</h2>
-<p>We identify “episodes of care”, that is, periods where multiple
-observations are made in a short space of time. This will allow us to
-later identify potential hospital admissions or in-patient events.</p>
-<p>We define an “episode of care” by linking together any observation
-made within seven days of another into one group of observations. To
-give a concrete example: observations made on days 1, 8, and 14
-post-biopsy belong to one “episode of care” because they all occur
-within seven days of one another. If the next observation were made on
-day 22 (eight days after day 14), then it would belong in a separate
-episode of care. The code below assigns a unique numeric
-<code>group_id</code> to each observation by which its episode of care
-can be identified.</p>
-<pre class="r"><code>scr_episodes &lt;- scr_values %&gt;%
-  dplyr::group_by(patient_id) %&gt;%
-  dplyr::mutate(lag_day = abs(days_from_biopsy - lag(days_from_biopsy)) &lt;= 7,
-         lead_day = abs(days_from_biopsy - lead(days_from_biopsy)) &lt;= 7) %&gt;%
-  dplyr::mutate_at(vars(lag_day, lead_day), ~ ifelse(., ., NA))%&gt;%
-  dplyr::mutate(episode_of_care = ifelse(is.na(lead_day), NA, data.table::rleid(lead_day))) %&gt;%
-  dplyr::mutate(episode_of_care = ifelse(!is.na(lag_day), zoo::na.locf(episode_of_care, na.rm = FALSE), episode_of_care)) %&gt;%
-  dplyr::mutate(group_id = coalesce(
-      case_when(is.na(episode_of_care) ~ nrow(.) + row_number()), # number of rows in df plus row number ensures unique ID
-      episode_of_care)) %&gt;%
-  dplyr::ungroup()</code></pre>
-</div>
-<div id="flag-episodes-of-care-as-potential-aki-and-in-patient-events"
-class="section level2">
-<h2>Flag episodes of care as potential AKI and in-patient events</h2>
-<p>Now we have our observations grouped into episodes of care, we use
-the above AKI criteria to flag for potential AKI events. Specifically,
-an episode of care is given the flag <code>AKI</code> if and only if one
-or more observations belonging to the episode meets one or more of the
-AKI criteria. We also take note of the number of serum creatinine
-observations within each episode, which we will use to flag for
-potential in-patient events (hospital admissions). Specifically, if one
-episode of care contains five or more observations we give it the
-<code>in-patient</code> flag.</p>
-<pre class="r"><code>summarised_episodes &lt;- scr_episodes %&gt;%
-  dplyr::group_by(patient_id, group_id) %&gt;%
-  dplyr::summarise(
-    AKI = any(AKIcrit1, AKIcrit2, AKIcrit3, AKIcrit4, na.rm = TRUE), 
-    n_obs = n(),
-    start = min(days_from_biopsy),
-    end = max(days_from_biopsy))</code></pre>
-<pre><code>`summarise()` has grouped output by &#39;patient_id&#39;. You can override using the
-`.groups` argument.</code></pre>
-<pre class="r"><code>flagged_episodes &lt;- summarised_episodes %&gt;%
-  dplyr::filter(AKI | n_obs &gt;= 5) %&gt;%
-  dplyr::mutate(in_patient = ifelse(n_obs &gt;= 5, TRUE, FALSE)) %&gt;%
-  dplyr::mutate(flag = ifelse(AKI &amp; in_patient, &quot;AKI and in-patient&quot;,
-                                  ifelse(AKI, &quot;AKI&quot;, &quot;in-patient&quot;))) %&gt;%
-  dplyr::mutate(flag = as.factor(flag)) %&gt;%
-  dplyr::select(start, end, patient_id, n_obs, flag, group_id)</code></pre>
-<pre class="r"><code>knitr::kable(head(flagged_episodes))</code></pre>
+<div id="extract-table-of-egfr-slopes" class="section level2">
+<h2>Extract table of eGFR slopes</h2>
+<p>Finally, the support function <code>extract_egfr_table()</code>
+allows us to extract a table of the eGFR slope (ml/min/1.73m²/year) and
+intercept (ml/min/1.73m²) according to the fitted joint mixed effects
+model.</p>
+<pre class="r"><code>eGFR_slopes &lt;- extract_egfr_table(patient_list = all_patients,
+                         pred_eGFR = eGFR_values)</code></pre>
+<pre class="r"><code>knitr::kable(head(eGFR_slopes))</code></pre>
 <table>
 <thead>
 <tr class="header">
-<th align="right">start</th>
-<th align="right">end</th>
-<th align="right">patient_id</th>
-<th align="right">n_obs</th>
-<th align="left">flag</th>
-<th align="right">group_id</th>
+<th align="left">patient_id</th>
+<th align="left">slope</th>
+<th align="left">intercept</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="right">1</td>
-<td align="right">5</td>
-<td align="right">2</td>
-<td align="right">4</td>
-<td align="left">AKI</td>
-<td align="right">1</td>
+<td align="left">1</td>
+<td align="left">-0.00319569986566873</td>
+<td align="left">89.7425584667643</td>
 </tr>
 <tr class="even">
-<td align="right">2759</td>
-<td align="right">2759</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="left">AKI</td>
-<td align="right">2945</td>
+<td align="left">2</td>
+<td align="left">-0.78319044258304</td>
+<td align="left">58.8697772721615</td>
 </tr>
 <tr class="odd">
-<td align="right">3893</td>
-<td align="right">3893</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="left">AKI</td>
-<td align="right">2954</td>
+<td align="left">3</td>
+<td align="left">-0.523898518827211</td>
+<td align="left">82.414218816593</td>
 </tr>
 <tr class="even">
-<td align="right">6192</td>
-<td align="right">6192</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="left">AKI</td>
-<td align="right">2980</td>
+<td align="left">4</td>
+<td align="left">-1.81874084171771</td>
+<td align="left">66.1457608037737</td>
 </tr>
 <tr class="odd">
-<td align="right">6234</td>
-<td align="right">6234</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="left">AKI</td>
-<td align="right">2982</td>
+<td align="left">5</td>
+<td align="left">-1.00722995549735</td>
+<td align="left">77.2684360381736</td>
 </tr>
 <tr class="even">
-<td align="right">0</td>
-<td align="right">13</td>
-<td align="right">3</td>
-<td align="right">5</td>
-<td align="left">in-patient</td>
-<td align="right">1</td>
+<td align="left">6</td>
+<td align="left">-0.119481484742004</td>
+<td align="left">52.342801282488</td>
 </tr>
 </tbody>
 </table>
-</div>
-<div id="save-data" class="section level2">
-<h2>Save data</h2>
-<p>Save the flagged episodes, so that if desired we can remove the
-outlying observations from the data when calculating the long-term eGFR
-slopes:</p>
-<pre class="r"><code>write.csv(flagged_episodes, &quot;output/flagged_episodes.csv&quot;, row.names = FALSE)</code></pre>
+<p>Save eGFR slopes:</p>
+<pre class="r"><code>write.csv(eGFR_slopes, &quot;output/fitted_eGFR_slopes.csv&quot;, row.names = FALSE)</code></pre>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -987,25 +923,26 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] zoo_1.8-12      lubridate_1.9.2 forcats_1.0.0   stringr_1.5.0  
- [5] dplyr_1.1.2     purrr_1.0.1     readr_2.1.4     tidyr_1.3.0    
- [9] tibble_3.2.1    ggplot2_3.4.2   tidyverse_2.0.0 workflowr_1.7.0
+ [1] lubridate_1.9.2 forcats_1.0.0   stringr_1.5.0   dplyr_1.1.2    
+ [5] purrr_1.0.1     readr_2.1.4     tidyr_1.3.0     tibble_3.2.1   
+ [9] ggplot2_3.4.2   tidyverse_2.0.0 workflowr_1.7.0
 
 loaded via a namespace (and not attached):
- [1] sass_0.4.6        utf8_1.2.3        generics_0.1.3    lattice_0.21-8   
- [5] stringi_1.7.12    hms_1.1.3         digest_0.6.31     magrittr_2.0.3   
- [9] timechange_0.2.0  evaluate_0.21     grid_4.3.0        fastmap_1.1.1    
-[13] rprojroot_2.0.3   jsonlite_1.8.5    processx_3.8.1    whisker_0.4.1    
-[17] ps_1.7.5          promises_1.2.0.1  httr_1.4.6        fansi_1.0.4      
-[21] scales_1.2.1      jquerylib_0.1.4   cli_3.6.1         rlang_1.1.1      
-[25] munsell_0.5.0     withr_2.5.0       cachem_1.0.8      yaml_2.3.7       
-[29] tools_4.3.0       tzdb_0.4.0        colorspace_2.1-0  httpuv_1.6.11    
-[33] vctrs_0.6.2       R6_2.5.1          lifecycle_1.0.3   git2r_0.32.0     
-[37] fs_1.6.2          pkgconfig_2.0.3   callr_3.7.3       pillar_1.9.0     
-[41] bslib_0.4.2       later_1.3.1       gtable_0.3.3      data.table_1.14.8
-[45] glue_1.6.2        Rcpp_1.0.10       xfun_0.39         tidyselect_1.2.0 
-[49] rstudioapi_0.14   knitr_1.43        htmltools_0.5.5   rmarkdown_2.22   
-[53] compiler_4.3.0    getPass_0.2-2    </code></pre>
+ [1] sass_0.4.6       utf8_1.2.3       generics_0.1.3   stringi_1.7.12  
+ [5] hms_1.1.3        digest_0.6.31    magrittr_2.0.3   timechange_0.2.0
+ [9] evaluate_0.21    grid_4.3.0       fastmap_1.1.1    rprojroot_2.0.3 
+[13] jsonlite_1.8.5   ggrepel_0.9.3    processx_3.8.1   whisker_0.4.1   
+[17] ps_1.7.5         promises_1.2.0.1 httr_1.4.6       fansi_1.0.4     
+[21] scales_1.2.1     jquerylib_0.1.4  cli_3.6.1        rlang_1.1.1     
+[25] munsell_0.5.0    withr_2.5.0      cachem_1.0.8     yaml_2.3.7      
+[29] tools_4.3.0      tzdb_0.4.0       colorspace_2.1-0 httpuv_1.6.11   
+[33] vctrs_0.6.2      R6_2.5.1         lifecycle_1.0.3  git2r_0.32.0    
+[37] fs_1.6.2         pkgconfig_2.0.3  callr_3.7.3      pillar_1.9.0    
+[41] bslib_0.4.2      later_1.3.1      gtable_0.3.3     glue_1.6.2      
+[45] Rcpp_1.0.10      highr_0.10       xfun_0.39        tidyselect_1.2.0
+[49] rstudioapi_0.14  knitr_1.43       farver_2.1.1     patchwork_1.1.2 
+[53] htmltools_0.5.5  labeling_0.4.2   rmarkdown_2.22   compiler_4.3.0  
+[57] getPass_0.2-2   </code></pre>
 </div>
 </div>
 
